@@ -1,0 +1,28 @@
+# Standalone infrastructure services — Redis & Postgres.
+# Start with: docker compose -f docker-compose.infra.yml up -d
+# Then point the main compose at host.docker.internal (or a shared network below).
+
+services:
+  redis:
+    image: docker.io/redis:7
+    restart: unless-stopped
+    env_file:
+      - .env
+    command: >
+      --requirepass ${REDIS_AUTH:-myredissecret}
+      --maxmemory-policy noeviction
+    ports:
+      - "127.0.0.1:6379:6379"
+    volumes:
+      - ./data/redis:/data
+      - ./logs/redis:/var/log/redis
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_AUTH:-myredissecret}", "ping"]
+      interval: 3s
+      timeout: 10s
+      retries: 10
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "5"

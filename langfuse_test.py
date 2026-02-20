@@ -1,47 +1,13 @@
-# import os
-# from langchain_openai import AzureChatOpenAI
-# from langfuse_tracer import trace_llm_call
-# from dotenv import load_dotenv
-# load_dotenv('.env')
-# # AZURE_OPENAI_API_KEY
-# # AZURE_OPENAI_ENDPOINT
-# # AZURE_OPENAI_API_VERSION
-# # AZURE_OPENAI_DEPLOYMENT_NAME
-
-# llm = AzureChatOpenAI(
-#     azure_deployment=os.getenv("AZURE_OPENAI_DEPLOYMENT_NAME"),
-#     azure_endpoint=os.getenv("AZURE_OPENAI_ENDPOINT"),
-#     api_version=os.getenv("AZURE_OPENAI_API_VERSION"),
-#     api_key=os.getenv("AZURE_OPENAI_API_KEY"),
-# )
-
-# @trace_llm_call(
-#     name="summarise_document",
-#     model="gpt-4o",
-#     tags=["summarisation", "prod"],
-#     session_id="session-abc",
-# )
-# def summarise(messages: list[dict]) -> str:
-#     response = llm.invoke(messages)
-#     return response.content          # ← the decorator auto-captures this
-
-# result = summarise([
-#     {"role": "system", "content": "You are a helpful assistant."},
-#     {"role": "user",   "content": "Summarise the French Revolution in 3 lines."},
-# ])
-
-# print("RESULT: ", result)
-
 import asyncio
 import os
 from autogen_agentchat.agents import AssistantAgent
 from autogen_agentchat.tools import AgentTool
 from autogen_ext.models.openai import AzureOpenAIChatCompletionClient
-from langfuse_tracer import trace_autogen_agent
+from langfuse_tracer import trace
 
 model_client = AzureOpenAIChatCompletionClient(
-    azure_deployment=os.getenv("AZURE_OPENAI_DEPLOYMENT_NAME"),  # your deployment name in Azure portal
-    model=os.getenv("AZURE_OPENAI_MODEL_NAME", "gpt-4o"),        # ← this was missing (actual model name)
+    azure_deployment=os.getenv("AZURE_OPENAI_DEPLOYMENT_NAME"),
+    model=os.getenv("AZURE_OPENAI_MODEL_NAME", "gpt-4o"),
     azure_endpoint=os.getenv("AZURE_OPENAI_ENDPOINT"),
     api_version=os.getenv("AZURE_OPENAI_API_VERSION"),
     api_key=os.getenv("AZURE_OPENAI_API_KEY"),
@@ -62,8 +28,8 @@ orchestrator = AssistantAgent(
     max_tool_iterations=5,
 )
 
-@trace_autogen_agent(
-    agent_name="orchestrator_with_tools",
+@trace(
+    name="orchestrator_with_tools",
     session_id="session-003",
     tags=["autogen", "agent-tool", "orchestration"],
 )
